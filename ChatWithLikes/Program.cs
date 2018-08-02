@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace ChatWithLikes
 {
@@ -6,7 +8,15 @@ namespace ChatWithLikes
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Chat with likes!");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appsettings.json");
+            var config = builder.Build();
+
+            var conStr = config["connectionString"];
         }
     }
 }
