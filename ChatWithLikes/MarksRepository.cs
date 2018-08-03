@@ -13,8 +13,9 @@ namespace ChatWithLikes
         private readonly SqlConnection _connection;
         private const string TableName = "Likes";
 
-        public MarksRepository(string conStr) =>
-            _connection = new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr)));
+        public MarksRepository(string conStr) 
+            : this(new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr))))
+        { }
 
         public MarksRepository(SqlConnection connection) =>
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));

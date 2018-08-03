@@ -12,8 +12,9 @@ namespace ChatWithLikes
         private readonly SqlConnection _connection;
         private const string TableName = "Messages";
 
-        public MessageRepository(string conStr) =>
-            _connection = new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr)));
+        public MessageRepository(string conStr) 
+            : this(new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr))))
+        { }
 
         public MessageRepository(SqlConnection connection) =>
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
@@ -42,9 +43,9 @@ namespace ChatWithLikes
                             messageId: (int)reader["MessageId"],
                             text: (string)reader["Text"],
                             senderId: (int)reader["SenderId"],
-                            replyMessageId: reader["ReplyMessageId"] == DBNull.Value ? 0 : (int)reader["ReplyMessageId"],
+                            replyMessageId: reader["ReplyMessageId"] as int? ?? default(int),
                             date: (DateTime)reader["Date"],
-                            mark: (int)reader["mark"]
+                            mark: reader["mark"] as int? ?? default(int)
                         ));
                     }
                 }
@@ -72,8 +73,8 @@ namespace ChatWithLikes
         {
             if (message is null) throw new ArgumentNullException(nameof(message));
 
-            var query = $@"INSERT INTO {TableName} (MessageId, Text, SenderId, ReplyMessageId, Date, Mark)
-                           VALUES (@MessageId, @Text, @SenderId, @ReplyMessageId, @Date, @Mark)";
+            var query = $@"INSERT INTO {TableName} (Text, SenderId, ReplyMessageId, Date, Mark)
+                           VALUES (@Text, @SenderId, @ReplyMessageId, @Date, @Mark)";
 
             var command = new SqlCommand(query, _connection);
             command.Parameters.AddWithValue("@MessageId", message.MessageId);

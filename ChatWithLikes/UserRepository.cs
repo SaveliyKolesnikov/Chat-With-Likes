@@ -12,8 +12,9 @@ namespace ChatWithLikes
         private readonly SqlConnection _connection;
         private const string TableName = "Users";
 
-        public UserRepository(string conStr) =>
-            _connection = new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr)));
+        public UserRepository(string conStr)
+            : this(new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr))))
+        { }
 
         public UserRepository(SqlConnection connection) =>
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
@@ -38,9 +39,9 @@ namespace ChatWithLikes
                     {
                         result.Add(new User
                         (
-                            userId:   (int)reader["UserId"],
+                            userId: (int)reader["UserId"],
                             username: (string)reader["Username"],
-                            email:    (string)reader["Email"]
+                            email: (string)reader["Email"]
                         ));
                     }
                 }
@@ -68,8 +69,8 @@ namespace ChatWithLikes
         {
             if (user is null) throw new ArgumentNullException(nameof(user));
 
-            var query = $@"INSERT INTO {TableName} (UserId, Username, Email)
-                           VALUES (@UserId, @Username, @Email)";
+            var query = $@"INSERT INTO {TableName} (Username, Email)
+                           VALUES (@Username, @Email)";
 
             var command = new SqlCommand(query, _connection);
             command.Parameters.AddWithValue("@UserId", user.UserId);

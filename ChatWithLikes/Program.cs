@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.SqlClient;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 
 namespace ChatWithLikes
@@ -16,6 +18,9 @@ namespace ChatWithLikes
             var config = builder.Build();
 
             var conStr = config["connectionString"];
+
+            using (var chat = new Chat(conStr))
+                chat.ShowUi();
         }
     }
 }
