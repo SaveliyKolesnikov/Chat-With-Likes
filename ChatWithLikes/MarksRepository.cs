@@ -3,27 +3,28 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ChatWithLikes
 {
-    class MessageRepository : IDisposable
+    class MarksRepository : IDisposable
     {
         private readonly SqlConnection _connection;
-        private const string TableName = "Messages";
+        private const string TableName = "Likes";
 
-        public MessageRepository(string conStr) =>
+        public MarksRepository(string conStr) =>
             _connection = new SqlConnection(conStr ?? throw new ArgumentNullException(nameof(conStr)));
 
-        public MessageRepository(SqlConnection connection) =>
+        public MarksRepository(SqlConnection connection) =>
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
 
         public void Dispose() => _connection.Dispose();
 
 
-        public async Task<List<Message>> GetMessagesAsync()
+        public async Task<List<Mark>> GetMarksAsync()
         {
-            var commandString = $@"SELECT MessageId, Text, SenderId, ReplyMessageId, Date, Mark
+            var commandString = $@"SELECT MessageId, UserId, Mark
                                    FROM {TableName}";
 
             var command = new SqlCommand(commandString, _connection);
@@ -31,20 +32,17 @@ namespace ChatWithLikes
             {
                 await _connection.OpenAsync();
 
-                var result = new List<Message>();
+                var result = new List<Mark>();
 
                 using (var reader = await command.ExecuteReaderAsync(CommandBehavior.CloseConnection))
                 {
                     while (await reader.ReadAsync())
                     {
-                        result.Add(new Message
+                        result.Add(new Mark
                         (
                             messageId: (int)reader["MessageId"],
-                            text: (string)reader["Text"],
-                            senderId: (int)reader["SenderId"],
-                            replyMessageId: reader["ReplyMessageId"] == DBNull.Value ? 0 : (int)reader["ReplyMessageId"],
-                            date: (DateTime)reader["Date"],
-                            mark: (int)reader["mark"]
+                            userId: (int)reader["UserId"],
+                            value: (int)reader["Mark"]
                         ));
                     }
                 }
@@ -54,12 +52,12 @@ namespace ChatWithLikes
             catch (IOException e)
             {
                 Console.WriteLine(e.Message);
-                return new List<Message>();
+                return new List<Mark>();
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return new List<Message>();
+                return new List<Mark>();
             }
             finally
             {
@@ -68,20 +66,17 @@ namespace ChatWithLikes
 
         }
 
-        public async Task CreateMessageAsync(Message message)
+        public async Task CreateMarkAsync(Mark mark)
         {
-            if (message is null) throw new ArgumentNullException(nameof(message));
+            if (mark is null) throw new ArgumentNullException(nameof(mark));
 
-            var query = $@"INSERT INTO {TableName} (MessageId, Text, SenderId, ReplyMessageId, Date, Mark)
-                           VALUES (@MessageId, @Text, @SenderId, @ReplyMessageId, @Date, @Mark)";
+            var query = $@"INSERT INTO {TableName} (MessageId, UserId, Mark)
+                           VALUES (@MessageId, @UserId, @Mark)";
 
             var command = new SqlCommand(query, _connection);
-            command.Parameters.AddWithValue("@MessageId", message.MessageId);
-            command.Parameters.AddWithValue("@Text", message.Text);
-            command.Parameters.AddWithValue("@SenderId", message.SenderId);
-            command.Parameters.AddWithValue("@ReplyMessageId", message.ReplyMessageId);
-            command.Parameters.AddWithValue("@Date", message.Date);
-            command.Parameters.AddWithValue("@Mark", message.Mark);
+            command.Parameters.AddWithValue("@MessageId", mark.MessageId);
+            command.Parameters.AddWithValue("@UserId", mark.UserId);
+            command.Parameters.AddWithValue("@Mark", mark.Value);
             try
             {
                 await _connection.OpenAsync();
@@ -101,13 +96,14 @@ namespace ChatWithLikes
             }
         }
 
-        public async Task DeleteMessageAsync(Message message)
+        public async Task DeleteMarkAsync(Mark mark)
         {
-            if (message is null) throw new ArgumentNullException(nameof(message));
+            if (mark is null) throw new ArgumentNullException(nameof(mark));
 
-            var query = $"DELETE FROM {TableName} WHERE MessageId = @DeletedId";
+            var query = $"DELETE FROM {TableName} WHERE MessageId = @MessageId AND UserId = @UserId";
             var command = new SqlCommand(query, _connection);
-            command.Parameters.AddWithValue("@DeletedId", message.MessageId);
+            command.Parameters.AddWithValue("@MessageId", mark.MessageId);
+            command.Parameters.AddWithValue("@UserId", mark.UserId);
             try
             {
                 await _connection.OpenAsync();
@@ -127,20 +123,17 @@ namespace ChatWithLikes
             }
         }
 
-        public async Task UpdateMessageAsync(Message message)
+        public async Task UpdateMarkAsync(Mark mark)
         {
-            if (message is null) throw new ArgumentNullException(nameof(message));
+            if (mark is null) throw new ArgumentNullException(nameof(mark));
 
             var query = $@"UPDATE {TableName} 
-                        SET Text = @Text, SenderId = @SenderId, ReplyMessageId = @ReplyMessageId, Date = @Date, Mark = @Mark
-                        WHERE MessageId = @UpdatedId";
+                        SET Mark = @Mark
+                        WHERE MessageId = @MessageId AND UserId = @UserId";
             var command = new SqlCommand(query, _connection);
-            command.Parameters.AddWithValue("@Text", message.Text);
-            command.Parameters.AddWithValue("@SenderId", message.SenderId);
-            command.Parameters.AddWithValue("@ReplyMessageId", message.ReplyMessageId);
-            command.Parameters.AddWithValue("@Date", message.Date);
-            command.Parameters.AddWithValue("@Mark", message.Mark);
-            command.Parameters.AddWithValue("@UpdatedId", message.MessageId);
+            command.Parameters.AddWithValue("@Mark", mark.Value);
+            command.Parameters.AddWithValue("@MessageId", mark.MessageId);
+            command.Parameters.AddWithValue("@UserId", mark.UserId);
 
             try
             {

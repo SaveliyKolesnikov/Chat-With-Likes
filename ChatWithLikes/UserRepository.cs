@@ -21,7 +21,7 @@ namespace ChatWithLikes
         public void Dispose() => _connection.Dispose();
 
 
-        public async Task<List<User>> GetUsers()
+        public async Task<List<User>> GetUsersAsync()
         {
             var commandString = $"SELECT UserId, Username, Email FROM {TableName}";
 
@@ -64,7 +64,7 @@ namespace ChatWithLikes
 
         }
 
-        public async Task CreateUser(User user)
+        public async Task CreateUserAsync(User user)
         {
             if (user is null) throw new ArgumentNullException(nameof(user));
 
@@ -94,11 +94,11 @@ namespace ChatWithLikes
             }
         }
 
-        public async Task DeleteUser(User user)
+        public async Task DeleteUserAsync(User user)
         {
             if (user is null) throw new ArgumentNullException(nameof(user));
 
-            var query = $"DELETE FROM {TableName} WHERE Id = @DeletedId";
+            var query = $"DELETE FROM {TableName} WHERE UserId = @DeletedId";
             var command = new SqlCommand(query, _connection);
             command.Parameters.AddWithValue("@DeletedId", user.UserId);
             try
@@ -120,13 +120,13 @@ namespace ChatWithLikes
             }
         }
 
-        public async Task UpdateRecord(User user)
+        public async Task UpdateRecordAsync(User user)
         {
             if (user is null) throw new ArgumentNullException(nameof(user));
 
             var query = $@"UPDATE {TableName} 
                         SET Username = @Username, Email = @Email
-                        WHERE Id = @UpdatedId";
+                        WHERE UserId = @UpdatedId";
             var command = new SqlCommand(query, _connection);
             command.Parameters.AddWithValue("@Username", user.Username);
             command.Parameters.AddWithValue("@Email", user.Email);

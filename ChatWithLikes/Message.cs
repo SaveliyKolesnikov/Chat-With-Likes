@@ -18,7 +18,9 @@ namespace ChatWithLikes
         public int MessageId { get; }
         public string Text { get; set; }
         public int SenderId { get; set; }
+        public User Sender { get; set; }
         public int ReplyMessageId { get; set; }
+        public Message ReplyMessage { get; set; }
         public DateTime Date { get; set; }
         public int Mark { get; set; }
     }
