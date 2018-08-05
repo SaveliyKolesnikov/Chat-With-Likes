@@ -88,7 +88,7 @@ namespace ChatWithLikes
                 var num = 1;
                 foreach (var message in Messages.OrderBy(message => message.Date))
                     Console.WriteLine($"{num++}. {message}");
-                Console.WriteLine("Select the message you want to reply or -1 if you don't want.");
+                Console.WriteLine("Select the message you want to reply or -1 if you don't want to.");
                 choice = Convert.ToInt32(Console.ReadLine());
             } while ((choice < 1 || choice > Messages.Count) && choice != -1);
 
